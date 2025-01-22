@@ -4,12 +4,15 @@
   "type": "module",
   "version": "0.0.0",
   "scripts": {
-    "dev": "convex dev --live-component-sources --typecheck-components",
+    "dev:convex": "convex dev --live-component-sources --typecheck-components",
     "dev:frontend": "vite",
+    "dev": "run-p dev:*",
     "logs": "convex logs",
     "lint": "tsc -p convex && eslint convex"
   },
   "dependencies": {
+    "@blocknote/mantine": "^0.23.0",
+    "@blocknote/react": "^0.23.0",
     "@convex-dev/prosemirror-sync": "file:..",
     "@tiptap/extension-link": "^2.10.3",
     "@tiptap/extension-placeholder": "^2.10.3",
@@ -31,6 +34,7 @@
     "eslint-plugin-react-hooks": "^5.1.0-rc.0",
     "eslint-plugin-react-refresh": "^0.4.9",
     "globals": "^15.9.0",
+    "npm-run-all2": "^7.0.2",
     "typescript": "^5.5.0",
     "typescript-eslint": "^8.0.1",
     "vite": "^5.4.1"

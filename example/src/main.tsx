@@ -9,7 +9,7 @@ const convex = new ConvexReactClient(address);
 
 // Fetch the id from the URL hash, or make a new one
 if (window.location.hash.length <= 1) {
-  window.location.hash = `#${crypto.randomUUID()}`;
+  window.location.hash = `#blocknote-${crypto.randomUUID()}`;
 }
 window.addEventListener("hashchange", () => {
   window.location.reload();

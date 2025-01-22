@@ -1,17 +1,11 @@
 import "./App.css";
-import { EditorContent, EditorProvider } from "@tiptap/react";
-import { api } from "../convex/_generated/api";
-import { JSONContent } from "@tiptap/core";
-import { useTiptapSync } from "@convex-dev/prosemirror-sync/tiptap";
-import { extensions } from "./extensions";
 
-const EMPTY_DOC: JSONContent = { type: "doc", content: [] };
+import { TipTapExample } from "./TiptapExample";
+import { BlockNoteExample } from "./BlockNoteExample";
 
 function App(props: { id: string }) {
-  const sync = useTiptapSync(api.example, props.id, { debug: true });
-  if (!sync.isLoading && sync.initialContent === null) {
-    sync.create(EMPTY_DOC);
-  }
+  const useBlockNote = props.id.startsWith("blocknote");
+  const editor = useBlockNote ? "BlockNote" : "Tiptap";
   return (
     <>
       <h1>ProseMirror + Convex Sync</h1>
@@ -19,29 +13,27 @@ function App(props: { id: string }) {
         This demonstrates syncing a ProseMirror document using Convex to provide
         real-time collaborative editing.
         <br />
-        It uses Tiptap for the in-browser editing and support for inline
-        Markdown formatting, similar to Notion.
+        It uses Tiptap or BlockNote for the in-browser editing and support for
+        inline Markdown formatting, similar to Notion.
         <br />
         Share this URL to edit the same document, or test co-editing by opening
         multiple tabs with the same URL.
         <br />
-        The URL hash is the document ID.
+        The URL hash is the document ID. For demo purposes, it uses BlockNote if
+        the ID starts with "blocknote", otherwise it uses Tiptap.
+        <br />
       </div>
       <div className="card">
-        {sync.initialContent !== null ? (
-          <EditorProvider
-            content={sync.initialContent}
-            extensions={[...extensions, sync.extension]}
-          >
-            <EditorContent editor={null} />
-          </EditorProvider>
+        <strong>{editor}</strong>
+        {useBlockNote ? (
+          <BlockNoteExample id={props.id} />
         ) : (
-          <p>Loading...</p>
+          <TipTapExample id={props.id} />
         )}
       </div>
       <footer>
         <p className="read-the-docs">
-          Powered by Tiptap (ProseMirror) + Convex + Vite + React + TypeScript
+          Powered by {editor} (ProseMirror) + Convex + Vite + React + TypeScript
         </p>
         <a
           href="https://github.com/get-convex/prosemirror-sync"

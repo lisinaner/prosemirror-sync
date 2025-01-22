@@ -2,11 +2,19 @@
 
 ## Running locally
 
+Setup:
+
 ```sh
 npm i
 cd example
 npm i
-npx convex dev
+npm run dev:convex -- --once
+```
+
+Run the frontend and backend:
+
+```sh
+npm run dev
 ```
 
 ## Testing
