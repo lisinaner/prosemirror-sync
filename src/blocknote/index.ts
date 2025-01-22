@@ -1,20 +1,10 @@
+import { useMemo } from "react";
+import type { SyncApi } from "../client";
+import { type UseSyncOptions, useTiptapSync } from "../tiptap";
 import {
-  ConvexReactClient,
-  useConvex,
-  useMutation,
-  useQuery,
-  Watch,
-} from "convex/react";
-import { Content, Editor, Extension, JSONContent } from "@tiptap/core";
-import * as collab from "@tiptap/pm/collab";
-import { Step } from "@tiptap/pm/transform";
-import { useCallback, useMemo, useState } from "react";
-import { SyncApi } from "../client";
-import { UseSyncOptions, useTiptapSync } from "../tiptap";
-import {
-  Block,
+  type Block,
   BlockNoteEditor,
-  BlockNoteEditorOptions,
+  type BlockNoteEditorOptions,
   nodeToBlock,
 } from "@blocknote/core";
 
