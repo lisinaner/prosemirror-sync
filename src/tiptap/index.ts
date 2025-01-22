@@ -15,7 +15,7 @@ import { SyncApi } from "../client";
 const MAX_STEPS_SYNC = 1000;
 const SNAPSHOT_DEBOUNCE_MS = 1000;
 
-type UseSyncOptions = {
+export type UseSyncOptions = {
   onSyncError?: (error: Error) => void;
   snapshotDebounceMs?: number;
   debug?: boolean;
