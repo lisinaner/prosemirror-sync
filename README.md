@@ -4,7 +4,8 @@
 
 This is a [Convex Component](https://convex.dev/components) that syncs a
 [ProseMirror](https://prosemirror.net/) document between clients via a
-[Tiptap](https://tiptap.dev/) extension.
+[Tiptap](https://tiptap.dev/) extension (that also works with
+[BlockNote](https://blocknotejs.org/)).
 
 <!-- START: Include on https://convex.dev/components -->
 
@@ -14,7 +15,7 @@ synced to the cloud. The data lives in your Convex database, and can be stored
 alongside the rest of your app's data.
 
 Just configure your editor features, add this component to your Convex backend,
-and use the `useTiptapSync` React hook.
+and use the provided sync React hook.
 Read this [Stack post](https://stack.convex.dev/add-a-collaborative-document-editor-to-your-app) for more details.
 
 [![Example of editing](http://img.youtube.com/vi/TGd-Nl7PBYQ/0.jpg)](http://www.youtube.com/watch?v=TGd-Nl7PBYQ "Collaborative editing syncing")
@@ -44,6 +45,7 @@ Features:
 - Safely merges changes between clients via operational transformations (OT).
 - Simple React hook to fetch the initial document and keep it in sync via a
   Tiptap extension.
+- Supports both Tiptap and BlockNote.
 - Server-side entrypoints for authorizing reads, writes, and snapshots.
 - Create a new document, online or offline.
 - Debounced snapshots allow new clients to avoid reading the full history.
@@ -68,7 +70,6 @@ Future that could be added later:
 - Pluggable storage for ReactNative, assuming single-session.
 - Warning when closing tab with unsynced changes (works by default?).
 - Vacuuming controls for old deltas & snapshots.
-- Add a BlockNote convenience wrapper.
 - Convert it to a ProseMirror plugin instead of a Tiptap extension, so raw
   ProseMirror usecases can also use it.
 - Handling edge cases, such as old clients with local changes on top of an older
@@ -129,7 +130,7 @@ export default app;
 ## Usage
 
 To use the component, you expose the API in a file in your `convex/` folder, and
-use the `useTiptapSync` hook in your React components, passing in a reference to
+use the editor-specific sync React hook, passing in a reference to
 the API you defined. For this example, we'll create the API in
 `convex/example.ts`.
 
@@ -150,6 +151,37 @@ export const {
 });
 ```
 
+In your React components, you can then use the editor-specific hook to fetch the
+document and keep it in sync via a Tiptap extension. **Note**: This requires a
+[`ConvexProvider`](https://docs.convex.dev/quickstart/react#:~:text=Connect%20the%20app%20to%20your%20backend)
+to be in the component tree.
+
+### BlockNote editor
+
+```tsx
+// src/MyComponent.tsx
+import { useBlockNoteSync } from "@convex-dev/prosemirror-sync/blocknote";
+import "@blocknote/core/fonts/inter.css";
+import { BlockNoteView } from "@blocknote/mantine";
+import "@blocknote/mantine/style.css";
+import { api } from "../convex/_generated/api";
+
+export function MyComponent() {
+  const sync = useBlockNoteSync(api.example, "some-id");
+  return sync.isLoading ? (
+    <p>Loading...</p>
+  ) : sync.editor ? (
+    <BlockNoteView editor={sync.editor} />
+  ) : (
+    <button onClick={() => sync.create({ type: "doc", content: [] })}>
+      Create document
+    </button>
+  );
+}
+```
+
+### Tiptap editor
+
 In your React components, you can use the `useTiptapSync` hook to fetch the
 initial document and keep it in sync via a Tiptap extension. **Note**: This
 requires a
@@ -163,7 +195,7 @@ import { EditorContent, EditorProvider } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import { api } from "../convex/_generated/api";
 
-function MyComponent() {
+export function MyComponent() {
   const sync = useTiptapSync(api.example, "some-id");
   return sync.isLoading ? (
     <p>Loading...</p>
@@ -191,7 +223,7 @@ See a working example in [example.ts](./example/convex/example.ts) and
 
 The snapshot debounce interval is set to one second by default.
 You can specify a different interval with the `snapshotDebounceMs` option when
-calling `useTiptapSync`.
+calling `useTiptapSync` or `useBlockNoteSync`.
 
 A snapshot won't be sent until both of these are true:
 
@@ -206,7 +238,10 @@ own change, they won't conflict with each other and are safe to apply.
 You can create a new document from the client by calling `sync.create(content)`, or on the server by calling `prosemirrorSync.create(ctx, id, content)`.
 
 The content should be a JSON object matching the
-[Schema](https://tiptap.dev/docs/editor/core-concepts/schema).
+[Schema](https://tiptap.dev/docs/editor/core-concepts/schema). If you're using
+BlockNote, it needs to be the ProseMirror JSON representation of the BlockNote
+blocks. Look at the value stored in the `snapshots` table in your database for
+an example. Both can use this value: `{ type: "doc", content: [] }`
 
 For client-side document creation:
 
@@ -217,8 +252,7 @@ For client-side document creation:
   initial version and all local changes as steps.
 - If multiple clients create the same document, it will fail if they submit
   different initial content.
-- Note: if you don't open that document (`useTiptapSync`) while online, it won't
-  sync.
+- Note: if you don't open that document while online, it won't sync.
 
 ### Transforming the document server-side
 
@@ -265,6 +299,9 @@ export const transformExample = action({
   stable identifiers, or use the ProseMirror mapping capabilities to map the
   position between different versions by fetching the steps between the versions
   fetched with `(component).lib.getSteps`.
+- If you're using BlockNote, you'll need to convert the BlockNote blocks between
+  BlockNote blocks and ProseMirror nodes. See
+  [blockToNode and nodeToBlock](https://github.com/TypeCellOS/BlockNote/tree/main/packages/core/src/api/nodeConversions).
 
 ```ts
 import { Transform } from "@tiptap/pm/transform";
@@ -295,12 +332,18 @@ npm install
 cd example
 npm install
 # Involves signing into Convex if necessary and deploying to a Convex.
-npm run dev
+npm run dev:convex
 ```
 
-And in another terminal, run:
+And in another terminal, run the frontend:
 
 ```sh
 cd example
 npm run dev:frontend
+```
+
+Or both:
+
+```sh
+npm run dev
 ```
